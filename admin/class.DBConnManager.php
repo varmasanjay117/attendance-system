@@ -4,7 +4,6 @@
  * class DBConnManager
  * This class manager will establish an connection and offer you an connection.
  * It will also take care of closing the connection.
- * @author Kishan Gor <me@kishan.co>
  */
 global $aConnStack;
 $aConnStack = array();
