@@ -35,7 +35,6 @@ if(isset($_SESSION["admin_id"]))
         <div class="container">
             <div class="row">
                 <div class="col-md-4">
-
                 </div>
                 <div class="col-md-4" style="margin-top:20px;">
                     <div class="card">
@@ -60,11 +59,45 @@ if(isset($_SESSION["admin_id"]))
                     </div>
                 </div>
                 <div class="col-md-4">
-
                 </div>
             </div>
         </div>
 
     </body>
-
     </html>
+    <script>
+    $(document).ready(function(){
+         $('#admin_login_form').on('submit', function(event){
+            event.preventDefault();
+            $.ajax({
+                url : 'check_admin_login.php',
+                method : 'POST',
+                data : $(this).serialize(),
+                dataType:'json',
+                beforeSend:function(){
+                    $('#admin_login').val('validate.....');
+                    $('#admin_login').attr('disabled','disabled');
+                },
+                success:function(data){
+                    if (data.success){
+                        // location.href="";
+                    }
+                    if(data.error){
+                        $('#admin_login').val('login');
+                        $('#admin_login').attr('disabled',false);
+                        if (data.error_admin_user_name!=''){
+                            $('#error_admin_user_name').text(data.error_admin_user_name);
+                        }else{
+                            $('#error_admin_user_name').text('')
+                        }
+                        if(data.error_admin_password!=''){
+                            $('#error_admin_password').text(data.error_admin);
+                        }else{
+                            $('#error_admin_password').text('');
+                        }
+                    }
+                }
+            });
+        });
+    });
+</script>
