@@ -10,7 +10,12 @@ $aConnStack = array();
 
 //! Do you want pooling to be enabled
 define("POOLING_ENABLED", TRUE);
+define('DATABASE_HOST','localhost');
+define('DATABASE_USER','root');
+define('DATABASE_PASS','password');
 
+//! Default Database to be used for system
+define('DEFAULT_DATABASE','attendance');
 //! What should be the maximum size of the pool? above specified size, connections will be closed immendiately for better memory management
 define("POOL_SIZE", 4);
 
@@ -52,6 +57,7 @@ class DBConnManager {
             $this->sDBUser = DATABASE_USER;
             $this->sDBPass = DATABASE_PASS;
 
+            // echo "<pre>";print_r($this->sDBHost);die();
             if(defined("DATABASE_PORT")) {
                 $this->sDBPort = DATABASE_PORT;
             }
