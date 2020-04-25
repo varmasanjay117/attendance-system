@@ -2,7 +2,8 @@
 
 //login.php
 
-include('database_connection.php');
+// include('database_connection.php');
+include "class.DBConnManager.php";
 
 session_start();
 
@@ -80,18 +81,19 @@ if(isset($_SESSION["admin_id"]))
                 },
                 success:function(data){
                     if (data.success){
-                        // location.href="";
+                        window.location.href="userDashBoard.php";
                     }
                     if(data.error){
                         $('#admin_login').val('login');
                         $('#admin_login').attr('disabled',false);
                         if (data.error_admin_user_name!=''){
+                           
                             $('#error_admin_user_name').text(data.error_admin_user_name);
                         }else{
                             $('#error_admin_user_name').text('')
                         }
                         if(data.error_admin_password!=''){
-                            $('#error_admin_password').text(data.error_admin);
+                            $('#error_admin_password').text(data.error_admin_password);
                         }else{
                             $('#error_admin_password').text('');
                         }

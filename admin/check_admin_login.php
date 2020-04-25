@@ -30,19 +30,12 @@ if($error ==0){
 	if($statement){
 		if($statement->num_rows > 0){
 			$result = $statement->fetch_assoc();
-			foreach ($result as $key->$value) {
-			    echo "<pre>";print_r($value);
-			}
-						
-				while($aRow = $statement->fetch_assoc()){
-	
-				if(password_verify($admin_password,$row["admin_password"])){
-					$_SESSION['admin_id']=$row["admin_id"];
+				if(password_verify($admin_password,$result["admin_password"])){
+					$_SESSION['admin_id']=$result["admin_id"];
 				}else{
 					$error_admin_password ='Wrong Password';
 					$error ++;
 				}
-			}
 		}else{
 			$error_admin_user_name = 'Wrong UserName';
 			$error ++;
