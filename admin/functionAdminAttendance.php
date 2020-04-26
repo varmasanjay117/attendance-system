@@ -108,4 +108,24 @@ function fDeleteGrade($iGradeId){
 	}	
 	return $sStatus;
 }
+
+function fGetGradeList(){
+    $output = '';
+    $aData=array();
+    $DBMan = new DBConnManager();
+    $conn =  $DBMan->getConnInstance();
+
+    $query = "SELECT * FROM tbl_grade where `status` = 1 ORDER BY grade_name ASC";
+
+    $sQuery = $conn->query($query);
+
+    while ($aRow = $sQuery->fetch_assoc()) {
+        $aData[] = $aRow;
+    }
+
+    foreach($aData as $row){
+        $output .= '<option value="'.$row["grade_id"].'">'.$row["grade_name"].'</option>';
+    }
+    return $output;
+}
 ?>
