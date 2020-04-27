@@ -3,6 +3,7 @@
 include_once 'header.php';
 include_once "class.DBConnManager.php";
 include_once "functionAdminAttendance.php";
+// include_once "ajaxTeacher.php";
 ?>
 <div class="container" style="margin-top:30px">
 	<div class="card">
@@ -19,6 +20,7 @@ include_once "functionAdminAttendance.php";
 				<table class="table table-striped table-bordered" id="teacher_table">
 					<thead>
 						<tr>
+							<th>Sr No.</th>
 							<th>Image</th>
 							<th>Teacher Name</th>
 							<th>Email Address</th>
@@ -122,6 +124,25 @@ include_once "functionAdminAttendance.php";
 	</div>
 </div>
 
+<!-- View Teacher Info -->
+<div class="modal" id="viewModal">
+	<div class="modal-dialog modal-lg">
+		<div class="modal-content">
+			<!-- Modal Header -->
+			<div class="modal-header">
+				<h4 class="modal-title">Teacher Details</h4>
+				<button type="button" class="close" data-dismiss="modal">&times;</button>
+			</div>
+			<!-- Modal body -->
+			<div class="modal-body" id="teacher_details"> </div>
+			<!-- Modal footer -->
+			<div class="modal-footer">
+				<button type="button" class="btn btn-danger btn-sm" data-dismiss="modal">Close</button>
+			</div>
+		</div>
+	</div>
+</div>
+
 </body>
 </html>
 <script type="text/javascript" src="https://www.eyecon.ro/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
@@ -131,107 +152,214 @@ include_once "functionAdminAttendance.php";
 
 <style>
     .datepicker {
-      z-index: 1600 !important; /* has to be larger than 1050 */
+      z-index: 1600 !important; 
     }
 </style>
 <script>
-  function clear_field()
-  {
-    $('#teacher_form')[0].reset();
-    $('#error_teacher_name').text('');
-    $('#error_teacher_address').text('');
-    $('#error_teacher_emailid').text('');
-    $('#error_teacher_password').text('');
-    $('#error_teacher_qualification').text('');
-    $('#error_teacher_doj').text('');
-    $('#error_teacher_image').text('');
-    $('#error_teacher_grade_id').text('');
-  }
+$(document).ready(function(){
+	window.oTableUIDataTable = $('#teacher_table').DataTable({
+        "processing": true,
+        "serverSide": true,
+        "searching": false,
+        "pageLength": 20,
+        "order": [],
+        "columnDefs": [{
+            "aTargets": [-1,-2,0],
+            "orderable": false
+        }],
+        "ajax": {
+            "url": "ajaxTeacher.php?sFlag=getAllTeacher",
+        },
+        "lengthChange": false
+    });
 
-  $('#add_button').click(function(){
-    $('#modal_title').text("Add Teacher");
-    $('#button_action').val('Add');
-    $('#action').val('Add');
-    $('#formModal').modal('show');
-    clear_field();
-  });
 
-  $('#teacher_form').on('submit', function(event) {
-	event.preventDefault();
-	var formData = new FormData(this);
-	console.log(formData);
+	function clear_field(){
+	    $('#teacher_form')[0].reset();
+	    $('#error_teacher_name').text('');
+	    $('#error_teacher_address').text('');
+	    $('#error_teacher_emailid').text('');
+	    $('#error_teacher_password').text('');
+	    $('#error_teacher_qualification').text('');
+	    $('#error_teacher_doj').text('');
+	    $('#error_teacher_image').text('');
+	    $('#error_teacher_grade_id').text('');
+	}
 
-	$.ajax({
-		url: "ajaxTeacher.php?sFlag=addUpdateTeacher",
-		method: "POST",
-		data:formData,
-		enctype: 'multipart/form-data',
-		dataType: "json",
-		contentType: false,
-		processData: false,
-		beforeSend: function() {
-			$('#button_action').val('Validate...');
-			$('#button_action').attr('disabled', 'disabled');
-		},
-		success: function(data) {
-			$('#button_action').attr('disabled', false);
-			$('#button_action').val($('#action').val());
-			if(data.success) {
-				$('#message_operation').html('<div class="alert alert-success">' + data.success + '</div>');
-				clear_field();
-				$('#formModal').modal('hide');
-				dataTable.ajax.reload();
-			}
-			if(data.error) {
-				if(data.error_teacher_name != '') {
-					$('#error_teacher_name').text(data.error_teacher_name);
-				} else {
-					$('#error_teacher_name').text('');
-				}
-				if(data.error_teacher_address != '') {
-					$('#error_teacher_address').text(data.error_teacher_address);
-				} else {
-					$('#error_teacher_address').text('');
-				}
-				if(data.error_teacher_emailid != '') {
-					$('#error_teacher_emailid').text(data.error_teacher_emailid);
-				} else {
-					$('#error_teacher_emailid').text('');
-				}
-				if(data.error_teacher_password != '') {
-					$('#error_teacher_password').text(data.error_teacher_password);
-				} else {
-					$('#error_teacher_password').text('');
-				}
-				if(data.error_teacher_grade_id != '') {
-					$('#error_teacher_grade_id').text(data.error_teacher_grade_id);
-				} else {
-					$('#error_teacher_grade_id').text('');
-				}
-				if(data.error_teacher_qualification != '') {
-					$('#error_teacher_qualification').text(data.error_teacher_qualification);
-				} else {
-					$('#error_teacher_qualification').text('');
-				}
-				if(data.error_teacher_doj != '') {
-					$('#error_teacher_doj').text(data.error_teacher_doj);
-				} else {
-					$('#error_teacher_doj').text('');
-				}
-				if(data.error_teacher_image != '') {
-					$('#error_teacher_image').text(data.error_teacher_image);
-				} else {
-					$('#error_teacher_image').text('');
-				}
-			}
-		}
+	$('#add_button').click(function(){
+		$('#modal_title').text("Add Teacher");
+		$('#button_action').val('Add');
+		$('#action').val('Add');
+		$('#formModal').modal('show');
+		clear_field();
 	});
 
-	$('#teacher_doj').datepicker({
-        format: "yyyy-mm-dd",
-        autoclose: true,
-        container: '#formModal modal-body'
-    });
-});
+	$('#teacher_form').on('submit', function(event) {
+		event.preventDefault();
+		var formData = new FormData(this);
+		console.log(formData);
 
+		$.ajax({
+			url: "ajaxTeacher.php?sFlag=addUpdateTeacher",
+			method: "POST",
+			data:formData,
+			enctype: 'multipart/form-data',
+			dataType: "json",
+			contentType: false,
+			processData: false,
+			beforeSend: function() {
+				$('#button_action').val('Validate...');
+				$('#button_action').attr('disabled', 'disabled');
+			},
+			success: function(data) {
+				$('#button_action').attr('disabled', false);
+				$('#button_action').val($('#action').val());
+				if(data.success) {
+					// $('#message_operation').html('<div class="alert alert-success">' + data.success + '</div>');
+					pNotifyCustomAlert(data.success, 'success');
+					clear_field();
+					$('#formModal').modal('hide');
+					oTableUIDataTable.ajax.reload();
+				}
+				if(data.error) {
+					if(data.error_teacher_name != '') {
+						$('#error_teacher_name').text(data.error_teacher_name);
+					} else {
+						$('#error_teacher_name').text('');
+					}
+					if(data.error_teacher_address != '') {
+						$('#error_teacher_address').text(data.error_teacher_address);
+					} else {
+						$('#error_teacher_address').text('');
+					}
+					if(data.error_teacher_emailid != '') {
+						$('#error_teacher_emailid').text(data.error_teacher_emailid);
+					} else {
+						$('#error_teacher_emailid').text('');
+					}
+					if(data.error_teacher_password != '') {
+						$('#error_teacher_password').text(data.error_teacher_password);
+					} else {
+						$('#error_teacher_password').text('');
+					}
+					if(data.error_teacher_grade_id != '') {
+						$('#error_teacher_grade_id').text(data.error_teacher_grade_id);
+					} else {
+						$('#error_teacher_grade_id').text('');
+					}
+					if(data.error_teacher_qualification != '') {
+						$('#error_teacher_qualification').text(data.error_teacher_qualification);
+					} else {
+						$('#error_teacher_qualification').text('');
+					}
+					if(data.error_teacher_doj != '') {
+						$('#error_teacher_doj').text(data.error_teacher_doj);
+					} else {
+						$('#error_teacher_doj').text('');
+					}
+					if(data.error_teacher_image != '') {
+						$('#error_teacher_image').text(data.error_teacher_image);
+					} else {
+						$('#error_teacher_image').text('');
+					}
+				}
+			}
+		});
+	});
+
+	$(document).on('click', '.classViewTeacher', function() {
+		iTeacherId = $(this).attr('id');
+
+		$.ajax({
+			url: "ajaxTeacher.php?sFlag=getSingleTeacherInfo",
+			method: "POST",
+			data: {
+				iTeacherId: iTeacherId
+			},
+			success: function(data) {
+				var sTemplate = "";
+				$('#viewModal').modal('show');
+				    sTemplate += '<div class="row">';
+							        sTemplate +='<div class="col-md-3">';
+							            sTemplate +='<img src="teacher_image/'+data['sTeacherImage']+'" class="img-thumbnail" />';
+							        sTemplate +='</div>';
+							        sTemplate +='<div class="col-md-9">';
+							            sTemplate +='<table class="table">';
+							                sTemplate +='<tr>';
+							                   sTemplate += '<th>Name</th>';
+							                   sTemplate += '<td>'+data['sTeacherName']+'</td>';
+							                sTemplate +='</tr>';
+							                sTemplate +='<tr>';
+							                    sTemplate +='<th>Address</th>';
+							                    sTemplate +='<td>'+data['sTeacherAddress']+'</td>';
+							                sTemplate +='</tr>';
+							                sTemplate +='<tr>';
+							                    sTemplate +='<th>Email Address</th>';
+							                   sTemplate += '<td>'+data['sTeacherEmailid']+'</td>';
+							                sTemplate +='</tr>';
+							                sTemplate +='<tr>';
+							                   sTemplate += '<th>Qualification</th>';
+							                    sTemplate +='<td>'+data['sTeacherQulification']+'</td>';
+							                sTemplate +='</tr>';
+							                sTemplate +='<tr>';
+							                    sTemplate +='<th>Date of Joining</th>';
+							                    sTemplate +='<td>'+data['dTeacherDoj']+'</td>';
+							               sTemplate += '</tr>';
+							                sTemplate +='<tr>';
+							                    sTemplate +='<th>Grade</th>';
+							                   sTemplate += '<td>'+data['sGradeName']+'</td>';
+							                sTemplate +='</tr>';
+							            sTemplate +='</table>';
+							        sTemplate +='</div>';
+							    sTemplate +='</div>';
+				$('#teacher_details').html(sTemplate);
+			}
+		});
+	});
+
+
+	$(document).on('click', '.classEditTeacher', function() {
+		iTeacherId = $(this).attr('id');
+
+		$.ajax({
+			url: "ajaxTeacher.php?sFlag=getSingleTeacherInfo",
+			method: "POST",
+			data: {
+				iTeacherId: iTeacherId
+			},
+			success: function(data) {
+				$('#teacher_name').val(data['sTeacherName']);
+		        $('#teacher_address').val(data['sTeacherAddress']);
+		        //$('#teacher_emailid').val(data.teacher_emailid);
+		        $('#teacher_grade_id').val(data['iTeacherGradeId']);
+		        $('#teacher_qualification').val(data['sTeacherQulification']);
+		        $('#teacher_doj').val(data['dTeacherDoj']);
+		        $('#error_teacher_image').html('<img src="teacher_image/'+data['sTeacherImage']+'" class="img-thumbnail" width="50" />');
+		        $('#hidden_teacher_image').val(data['sTeacherImage']);
+		        $('#teacher_id').val(data['iTeacherId']);
+		        $('#modal_title').text("Edit Teacher");
+		        $('#button_action').val('Edit');
+		        $('#action').val('Edit');
+		        $('#formModal').modal('show');
+			}
+		});
+	});
+	$('#teacher_doj').datepicker({
+	    format: "yyyy-mm-dd",
+	    autoclose: true,
+	    container: '#formModal modal-body'
+	});
+
+    function pNotifyCustomAlert(sNotifyText, sNotifyType) {
+        new PNotify({
+            'text': sNotifyText,
+            'type': sNotifyType,
+            'animation': 'none',
+            'delay': 8000,
+            'buttons': {
+                'sticker': false
+            }
+        });
+    }
+});
 </script>

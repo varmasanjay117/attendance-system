@@ -4,6 +4,8 @@ include_once 'class.DBConnManager.php';
 
 $aFunctionMap = array(
     'addUpdateTeacher' => "ajax_addUpdateTeacher",
+    'getAllTeacher' => "ajax_getAllTeacher",
+    'getSingleTeacherInfo' => "ajax_getSingleTeacherInfo",
 );
 
 $iFunc = $_REQUEST['sFlag'];
@@ -177,4 +179,79 @@ function ajax_addUpdateTeacher($aRequestData) {
     }
     return $output;
 }
+
+
+function ajax_getAllTeacher(){
+    $iStartLimit = isset($_GET['start']) ? $_GET['start'] : 0;
+    $iLength = isset($_GET['length']) ? $_GET['length'] : 0;
+    // $iEntityTypeID = isset($_GET['iEntityTypeID']) ? $_GET['iEntityTypeID'] : 0;
+    
+
+    $aSort = array();
+
+    if (isset($_GET['order'][0]['column']) && isset($_GET['order'][0]['dir'])) {
+        $iIndexColum = $_GET['order'][0]['column'];
+        $aSort['sOrder'] = $_GET['order'][0]['dir'];
+        if ($iIndexColum == 1) {
+            $aSort['sColumn'] = "sTeacherName";
+        }else if ($iIndexColum == 2) {
+            $aSort['sColumn'] = "sEmailid";
+        }else if ($iIndexColum == 3) {
+            $aSort['sColumn'] = "sGrade";
+        }
+    }
+
+    $aFilters = array(
+        //If anay filter
+        // 'iEntityTypeID' => $iEntityTypeID
+        
+    );
+    $oTeacher = new Teacher();
+    $aActualData =  $oTeacher->fGetAllTeacher($iStartLimit, $iLength, $aFilters, false, $aSort);
+ 
+    //! Fetching count data..
+    $iFilterCount =  $oTeacher->fGetAllTeacher($iStartLimit, 0, $aFilters, true, $aSort);
+
+    $iSrNo = $iStartLimit + 1;
+    foreach ($aActualData as $aDetails) {
+
+        $sTeacherImage= '<img src="teacher_image/'.$aDetails["teacher_image"].'" class="img-thumbnail" width="75" />';
+        $sView = '<button type="button" name="view_teacher" class="btn btn-info btn-sm classViewTeacher" id="'.$aDetails["teacher_id"].'">View</button>';
+        $sEdit = '<button type="button" name="edit_teacher" class="btn btn-primary btn-sm classEditTeacher" id="'.$aDetails["teacher_id"].'">Edit</button>';
+        $sDelete = '<button type="button" name="delete_teacher" class="btn btn-danger btn-sm classDeleteTeacher" id="'.$aDetails["teacher_id"].'">Delete</button>';
+
+        $aGradeData[] = array(
+            $iSrNo,
+            'sTeacherImage' => $sTeacherImage,
+            'sTeacherName' => $aDetails["teacher_name"],
+            'sEnailAddres' => $aDetails["teacher_emailid"],
+            'sGradeName' => $aDetails["grade_name"],
+            'sView' => $sView,
+            'sEdit' => $sEdit,
+            'sDelete' => $sDelete
+        );
+        $iSrNo++;
+    }
+
+    $aData = array(
+        'data' => array() ,
+        'draw' => $_GET['draw'],
+        "recordsTotal" => $iFilterCount,
+        "recordsFiltered" => $iFilterCount
+    );
+
+    foreach ($aGradeData as $colData) {
+        $aData['data'][] = array_values($colData);
+    }
+
+    return $aData;
+}
+
+
+function ajax_getSingleTeacherInfo($aRequestData){
+    $iTeacherId = isset($aRequestData['iTeacherId']) ? $aRequestData['iTeacherId'] : '';
+    $oTeacher = new Teacher($iTeacherId);
+    return $oTeacher;
+}
+
 

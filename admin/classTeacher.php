@@ -11,6 +11,7 @@ class Teacher{
     public $dTeacherDoj;
     public $sTeacherImage;
     public $iTeacherGradeId;
+    public $sGradeName;
 
 
     function __construct($iTeacherId = NULL){
@@ -18,18 +19,20 @@ class Teacher{
             $this->iTeacherId = $iTeacherId;
             $DBMan = new DBConnManager();
             $conn =  $DBMan->getConnInstance();
-            $sQuery = "SELECT * FROM `tbl_teacher` ";
+            $sQuery = "SELECT * FROM `tbl_teacher` INNER JOIN `tbl_grade` ON `tbl_grade`.`grade_id` = `tbl_teacher`.`teacher_grade_id` 
+            WHERE `tbl_teacher`.`status` = 1  AND `tbl_teacher`.`teacher_id`='{$this->iTeacherId}' ";
             $sSQueryResult = $conn->query($sQuery);
             if($sSQueryResult !== FALSE){
                 $aRow = $sSQueryResult->fetch_assoc();
             }
             $this->sTeacherName = $aRow['teacher_name'];
             $this->sTeacherAddress =   $aRow['teacher_address'];
-            $this->sTeacherQulification = $aRow['teacher_qulification'];
+            $this->sTeacherQulification = $aRow['teacher_qualification'];
             $this->dTeacherDoj =   $aRow['teacher_doj'];
             $this->sTeacherImage = $aRow['teacher_image'];
             $this->iTeacherGradeId = $aRow['teacher_grade_id'];
             $this->sTeacherEmailid = $aRow['teacher_emailid'];
+            $this->sGradeName = $aRow['grade_name'];
         }
     }
 
@@ -61,6 +64,69 @@ class Teacher{
             $this->iTeacherId = $conn->insert_id;
         }
         return $this->iTeacherId;
+    }
+
+    public function fGetAllTeacher($iStart = 0, $iLength = 1000, $aFilters = array() , $bCountOnly = false, $aSort = array()){
+
+        $aData = array();
+        $DBMan = new DBConnManager();
+        $conn = $DBMan->getConnInstance();
+
+        $sWhereClause = "";
+        //! Filter by product id..
+        // if(isset($aFilters['iProductID']) && $aFilters['iProductID'] > 0){
+        //  $sWhereClause .= " AND B.`product_id` = '{$aFilters['iProductID']}'";
+        // }
+        //! Sorting...
+        if ($iLength > 0) {
+            if (!empty($aSort)) {
+                $sSortColum = $aSort['sColumn'];
+                $sOrderByColumn = "";
+                if ($sSortColum == "sTeacherName") {
+                    $sOrderByColumn = " `tbl_teacher`.`teacher_name`";
+                }else if ($sSortColum == "sEmailid"){
+                    $sOrderByColumn = " `tbl_teacher`.`teacher_emailid`";
+                }else if($sSortColum == "sGrade"){
+                    $sOrderByColumn = " `tbl_grade`.`grade_name`";
+                }
+                $sWhereClause .= " ORDER BY {$sOrderByColumn} {$aSort['sOrder']}";
+            }
+            else {
+                $sWhereClause .= " ORDER BY  tbl_teacher.`teacher_name` DESC";
+            }
+        }
+
+        //! Pagination..
+        if ($iLength > 0) {
+            $sWhereClause .= " LIMIT {$iStart},{$iLength}";
+        }
+
+        if ($bCountOnly == true) {
+            $sQuery = "SELECT count(*) FROM `tbl_teacher` INNER JOIN `tbl_grade` ON `tbl_grade`.`grade_id` = `tbl_teacher`.`teacher_grade_id` 
+                WHERE `tbl_teacher`.`status` = 1 AND `tbl_grade`.`status`=1  {$sWhereClause}";
+
+            $rResult = $conn->query($sQuery);
+            if ($rResult) {
+                $aRow = $rResult->fetch_array();
+                return $aRow[0];
+            }
+            else {
+                return $conn->error;
+            }
+        }
+
+        $sSQuery = "SELECT * FROM `tbl_teacher` INNER JOIN `tbl_grade` ON `tbl_grade`.`grade_id` = `tbl_teacher`.`teacher_grade_id` 
+            WHERE `tbl_teacher`.`status` = 1 AND `tbl_grade`.`status`=1  {$sWhereClause}";
+
+        if ($conn != false) {
+            $sSQueryR = $conn->query($sSQuery);
+            if ($sSQueryR !== false) {
+                while ($aRow = $sSQueryR->fetch_assoc()) {
+                    $aData[] = $aRow;
+                }
+            }
+        }
+        return $aData;
     }
 }
 ?>
